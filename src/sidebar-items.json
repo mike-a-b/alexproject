@@ -1,0 +1,156 @@
+[
+  {
+    "name": "ГЛАВНЫЕ ОПЦИИ",
+    "isTitle": true
+  },
+  {
+    "name": "Главная",
+    "url": "index.html",
+    "icon": "grid-fill"
+  },
+  {
+    "name": "Резюме текста",
+    "key": "component",
+    "icon": "stack",
+    "submenu": [
+      {
+        "name": "Alert",
+        "url": "component-alert.html"
+      },
+      {
+        "name": "Badge",
+        "url": "component-badge.html"
+      },
+      {
+        "name": "Breadcrumb",
+        "url": "component-breadcrumb.html"
+      },
+      {
+        "name": "Button",
+        "url": "component-button.html"
+      },
+      {
+        "name": "Card",
+        "url": "component-card.html"
+      },
+      {
+        "name": "Carousel",
+        "url": "component-carousel.html"
+      },
+      {
+        "name": "Dropdown",
+        "url": "component-dropdown.html"
+      },
+      {
+        "name": "List Group",
+        "url": "component-list-group.html"
+      },
+      {
+        "name": "Modal",
+        "url": "component-modal.html"
+      },
+      {
+        "name": "Navs",
+        "url": "component-navs.html"
+      },
+      {
+        "name": "Pagination",
+        "url": "component-pagination.html"
+      },
+      {
+        "name": "Progress",
+        "url": "component-progress.html"
+      },
+      {
+        "name": "Spinner",
+        "url": "component-spinner.html"
+      },
+      {
+        "name": "Tooltip",
+        "url": "component-tooltip.html"
+      }
+    ]
+  },
+  {
+    "name": "Формирование базы данных",
+    "key": "extra-component",
+    "icon": "collection-fill",
+    "submenu": [
+      {
+        "name": "Avatar",
+        "url": "extra-component-avatar.html"
+      },
+      {
+        "name": "Sweet Alert",
+        "url": "extra-component-sweetalert.html"
+      },
+      {
+        "name": "Toastify",
+        "url": "extra-component-toastify.html"
+      },
+      {
+        "name": "Rating",
+        "url": "extra-component-rating.html"
+      },
+      {
+        "name": "Divider",
+        "url": "extra-component-divider.html"
+      }
+    ]
+  },
+  {
+    "name": "Добавление в базу данных",
+    "key": "layout",
+    "icon": "grid-1x2-fill",
+    "submenu": [
+      {
+        "name": "Default Layout",
+        "url": "layout-default.html"
+      },
+
+      {
+        "name": "Horizontal Menu",
+        "url": "layout-horizontal.html"
+      }
+    ]
+  },
+  {
+    "name": "Маркировка",
+    "key": "form-element",
+    "icon": "hexagon-fill",
+    "url": "form-element-textarea.html"
+  },
+  {
+    "name": "Шифрование",
+    "url": "form-layout.html",
+    "icon": "file-earmark-medical-fill"
+  },
+  {
+    "name": "Звук",
+    "icon": "pen-fill",
+    "key": "form-editor",
+    "submenu": [
+      {
+        "name": "Quill",
+        "url": "form-editor-quill.html"
+      },
+      {
+        "name": "CKEditor",
+        "url": "form-editor-ckeditor.html"
+      },
+      {
+        "name": "Summernote",
+        "url": "form-editor-summernote.html"
+      },
+      {
+        "name": "TinyMCE",
+        "url": "form-editor-tinymce.html"
+      }
+    ]
+  },
+  {
+    "name": "Гамбург",
+    "url": "table.html",
+    "icon": "grid-1x2-fill"
+  }
+]
