@@ -1,4 +1,4 @@
-{% set title = 'Login' %}
+{% set title = 'Registration' %}
 
 {% extends 'layouts/auth.html' %}
 {% block content %}
@@ -6,12 +6,12 @@
     <div class="col-lg-5 col-12">
         <div id="auth-left">
             <div class="auth-logo">
-                <a href="index.html"><img src="#" alt="Logo"></a>
+                <a href="/login"><img src="#" alt="Logo"></a>
             </div>
             <h1 class="auth-title">Регистрация</h1>
             <p class="auth-subtitle mb-5">Введите данные для регистрации на сайте</p>
 
-            <form action="index.html">
+            <form action="/registration" method="post">
                 <div class="form-group position-relative has-icon-left mb-4">
                     <input type="text" class="form-control form-control-xl" placeholder="Почта">
                     <div class="form-control-icon">
