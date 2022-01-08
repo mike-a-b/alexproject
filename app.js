@@ -97,27 +97,34 @@ app.get('/registration', function (req, res, next) {
 
 
 app.post('/registration', async (req, res) => {
-
-    const message = validateUser(req.body)
-    // const { username } = req.body;
-    // const user = await db.getUserByName(username)
-
-    if(!message) res.redirect('/login')
-    else{
-        return res.render('auth-register', {message})
+    try {
+        let value = validateUser(req.body);
+        console.log(value);
+        const newUser = await db.createUser(value);
+        // res.redirect('/login'); mess что пользователь создан
+        // выводим json с данными созданного в базе пользователя
+        res.status(201).json({
+            ...helper.serializeUser(newUser),
+        })
     }
-        // return res.status(409).json({ message: 'Пользователь с таким ником уже существует!'})
+    catch (e)
+    {
+        console.log(e);
+
+        let message = e.message;
+        return res.render('auth-register', message);
+    }
+    
     try {
         // console.log(req.body)
-        const newUser = await db.createUser(req.body)
-        res.redirect('/login')
+        // const newUser = await db.createUser(req.body);
+        // res.redirect('/login');
 // выводим json с данными созданного в базе пользователя
 //         res.status(201).json({
 //             ...helper.serializeUser(newUser),
 //         })
     } catch (e) {
         console.log(e)
-
         let message = e.message;
         return res.render('auth-register', message)
     }
@@ -129,7 +136,10 @@ app.get('/testAuth', auth, async (req, res) => {
     res.json({
         ...helper.serializeUser(user),
     })
+})
 
+app.get('/', function (req, res, next) {
+    res.redirect('/registration');
 })
 /************* VALIDATION INPUT DATA ************************/
 const JoiSchema = Joi.object({
@@ -150,14 +160,19 @@ const JoiSchema = Joi.object({
     .with('password', 'repeat_password');
 
 let validateUser = async function({ username, email, password, password2 }) {
-    const { err, value} = Joi.validate({username, email, password, password2}, JoiSchema);
-    if(err) return err;
-    if(password !== password2) return 'Пароли не совпадают'
-    let emailInBase = await db.getUserByEmail(email)
-    if(emailInBase) return 'Такой email уже существует'
-    let user = await db.getUserByName(username);
-    if (user) return (message = 'Пользователь уже существует!')
-    return false;
+    try {
+        const { err, value} = Joi.validate({username, email, password, password2}, JoiSchema);
+        if(err) return reject(err);
+        if(password !== password2) return reject('Пароли не совпадают');
+        let emailInBase = await db.getUserByEmail(email);
+        if(emailInBase) return reject('Такой email уже существует');
+        let user = await db.getUserByName(username);
+        if (user) return reject('Пользователь уже существует!');
+        resolve(value);
+    }
+    catch (e){
+        reject(e);
+    }
 }
 
 module.exports = app;

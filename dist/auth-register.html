@@ -22,8 +22,8 @@
                 <a href="/login"><img src="#" alt="Logo"></a>
             </div>
             <h1 class="auth-title">Регистрация</h1>
-            <p class="auth-subtitle mb-5">Введите данные для регистрации на сайте</p>
-
+            <p class="auth-subtitle">Введите данные для регистрации на сайте</p>
+            <p class="auth-subtitle"></p>
             <form action="/registration" method="post" class="needs-validation">
 
                 <div class="form-group position-relative has-icon-left mb-4" >
@@ -31,10 +31,8 @@
                     <div class="form-control-icon ">
                         <i class="bi bi-envelope"></i>
                     </div>
-                    <div class="valid-feedback">
-                        Все хорошо!
-                    </div>
-                    <div class="invalid-feedback"></div>
+
+
                 </div>
                 <div class="form-group position-relative has-icon-left mb-4">
                     <input type="text" id="username" name="username" class="form-control form-control-xl" placeholder="Имя пользователя" required>
@@ -53,8 +51,14 @@
                     <div class="form-control-icon">
                         <i class="bi bi-shield-lock"></i>
                     </div>
+                    <div class="valid-tooltip">
+                        
+                    </div>
+                    <div class="invalid-feedback">
+                        
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block btn-lg shadow-lg mt-5">Зарегистрироваться</button>
+                <button type="submit" class="btn btn-primary btn-block btn-lg shadow-lg ">Зарегистрироваться</button>
             </form>
             <div class="text-center mt-5 text-lg fs-4">
                 <p class='text-gray-600'>Уже есть аккаунт? <a href="/login" class="font-bold">Войти</a>.</p>
@@ -69,6 +73,7 @@
 </div>
 
     </div>
+<script src="assets/js/validate.js"></script>
 </body>
 
 </html>
