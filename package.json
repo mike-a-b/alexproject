@@ -26,6 +26,7 @@
     "dragula": "^3.7.2",
     "express": "^4.17.2",
     "feather-icons": "^4.28.0",
+    "joi": "^17.5.0",
     "jsonwebtoken": "^8.5.1",
     "laravel-mix": "^6.0.25",
     "lodash": "^4.17.21",

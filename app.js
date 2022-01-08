@@ -9,6 +9,7 @@ const db = require('./models')
 const helper = require('./helper/serialize')
 const passport = require('passport')
 const tokens = require('./auth/tokens')
+const Joi = require('joi')
 
 app.set("views", path.join(__dirname, "src"))
 app.set("view engine", "html")
@@ -27,10 +28,7 @@ nunjucks.configure(PATH_TO_TEMPLATES, {
     express: app
 });
 
-app.get('/registration', function (req, res, next) {
 
-    return res.render('auth-register');
-})
 
 app.use((err, _, res, __) => {
     console.log(err.stack)
@@ -39,7 +37,7 @@ app.use((err, _, res, __) => {
         message: err.message,
     })
 })
-
+//middleware for auth tokens
 const auth = (req, res, next) => {
     passport.authenticate('jwt', { session: false }, (err, user) => {
         if (!user || err) {
@@ -52,7 +50,7 @@ const auth = (req, res, next) => {
         next()
     })(req, res, next)
 }
-
+/****************        ROUTES START          ********************* */
 app.get('/login', function (req,res, next) {
     return res.render('auth-login');
 })
@@ -91,30 +89,37 @@ app.post('/refresh-token', async (req, res) => {
     res.json({ ...data })
 })
 
+app.get('/registration', function (req, res, next) {
+
+    return res.render('auth-register');
+})
+
+
+
 app.post('/registration', async (req, res) => {
 
-    const { username } = req.body;
-    // console.log(username);
-    const user = await db.getUserByName(username)
+    const message = validateUser(req.body)
+    // const { username } = req.body;
+    // const user = await db.getUserByName(username)
 
-    if (user) {
-        let message = 'Пользователь уже существует!';
-        return res.render('auth-register', {message, web_title:'пользователь уже существует'})
-        // return res.status(409).json({ message: 'Пользователь с таким ником уже существует!'})
+    if(!message) res.redirect('/login')
+    else{
+        return res.render('auth-register', {message})
     }
-
+        // return res.status(409).json({ message: 'Пользователь с таким ником уже существует!'})
     try {
         // console.log(req.body)
         const newUser = await db.createUser(req.body)
+        res.redirect('/login')
 // выводим json с данными созданного в базе пользователя
-        res.status(201).json({
-            ...helper.serializeUser(newUser),
-        })
+//         res.status(201).json({
+//             ...helper.serializeUser(newUser),
+//         })
     } catch (e) {
         console.log(e)
-        let message = e.message;// return?????
-        res.render('auth-register', message)
-        // res.status(500).json({ message: e.message })
+
+        let message = e.message;
+        return res.render('auth-register', message)
     }
 })
 
@@ -126,5 +131,33 @@ app.get('/testAuth', auth, async (req, res) => {
     })
 
 })
+/************* VALIDATION INPUT DATA ************************/
+const JoiSchema = Joi.object({
+    username: Joi.string()
+        .alphanum()
+        .min(3)
+        .max(30)
+        .required(),
+
+    password: Joi.string()
+        .pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).max(50).required(),
+
+    repeat_password: Joi.ref('password'),
+
+    email: Joi.string()
+        .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net', 'ru', 'рф'] } })
+})
+    .with('password', 'repeat_password');
+
+let validateUser = async function({ username, email, password, password2 }) {
+    const { err, value} = Joi.validate({username, email, password, password2}, JoiSchema);
+    if(err) return err;
+    if(password !== password2) return 'Пароли не совпадают'
+    let emailInBase = await db.getUserByEmail(email)
+    if(emailInBase) return 'Такой email уже существует'
+    let user = await db.getUserByName(username);
+    if (user) return (message = 'Пользователь уже существует!')
+    return false;
+}
 
 module.exports = app;

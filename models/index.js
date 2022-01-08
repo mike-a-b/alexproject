@@ -8,6 +8,11 @@ module.exports.getUserById = async (id) => {
     return User.findById({ _id: id })
 }
 
+module.exports.getUserByEmail = async (email) => {
+    return User.findOne({ email })
+}
+
+
 module.exports.createUser = async (data) => {
     const { email, username, password } = data
     const newUser = new User({
