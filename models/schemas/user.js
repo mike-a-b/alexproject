@@ -5,26 +5,17 @@ const Schema = mongoose.Schema
 
 const userSchema = new Schema(
     {
-        firstName: {
-            type: String,
-        },
-        middleName: {
-            type: String,
-        },
-        surName: {
-            type: String,
-        },
-        image: {
-            type: String,
-        },
         userName: {
             type: String,
             required: [true, 'username required'],
             unique: true,
         },
+        email: {
+            type: String,
+            required: [true, 'email required'],
+            unique: true,
+        },
         permission: {
-            chat: { C: Boolean, R: Boolean, U: Boolean, D: Boolean },
-            news: { C: Boolean, R: Boolean, U: Boolean, D: Boolean },
             settings: { C: Boolean, R: Boolean, U: Boolean, D: Boolean },
         },
         hash: {

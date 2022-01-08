@@ -13,33 +13,33 @@
 
             <form action="/registration" method="post">
                 <div class="form-group position-relative has-icon-left mb-4">
-                    <input type="text" class="form-control form-control-xl" placeholder="Почта">
+                    <input type="text" id= "email" name="email" class="form-control form-control-xl" placeholder="Почта">
                     <div class="form-control-icon">
                         <i class="bi bi-envelope"></i>
                     </div>
                 </div>
                 <div class="form-group position-relative has-icon-left mb-4">
-                    <input type="text" class="form-control form-control-xl" placeholder="Имя пользователя">
+                    <input type="text" id="username" name="username" class="form-control form-control-xl" placeholder="Имя пользователя">
                     <div class="form-control-icon">
                         <i class="bi bi-person"></i>
                     </div>
                 </div>
                 <div class="form-group position-relative has-icon-left mb-4">
-                    <input type="password" class="form-control form-control-xl" placeholder="Пароль">
+                    <input type="password" name="password" id="password"  class="form-control form-control-xl" placeholder="Пароль">
                     <div class="form-control-icon">
                         <i class="bi bi-shield-lock"></i>
                     </div>
                 </div>
                 <div class="form-group position-relative has-icon-left mb-4">
-                    <input type="password" class="form-control form-control-xl" placeholder="Подтвердить пароль">
+                    <input type="password" name="password2" id="password2" class="form-control form-control-xl" placeholder="Подтвердить пароль">
                     <div class="form-control-icon">
                         <i class="bi bi-shield-lock"></i>
                     </div>
                 </div>
-                <button class="btn btn-primary btn-block btn-lg shadow-lg mt-5">Зарегистрироваться</button>
+                <button type="submit" class="btn btn-primary btn-block btn-lg shadow-lg mt-5">Зарегистрироваться</button>
             </form>
             <div class="text-center mt-5 text-lg fs-4">
-                <p class='text-gray-600'>Уже есть аккаунт? <a href="auth-login.html" class="font-bold">Войти</a>.</p>
+                <p class='text-gray-600'>Уже есть аккаунт? <a href="/login" class="font-bold">Войти</a>.</p>
             </div>
         </div>
     </div>

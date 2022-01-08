@@ -9,16 +9,12 @@ module.exports.getUserById = async (id) => {
 }
 
 module.exports.createUser = async (data) => {
-    const { username, surName, firstName, middleName, password } = data
+    const { email, username, password } = data
     const newUser = new User({
         userName: username,
-        surName,
-        firstName,
-        middleName,
-        image: '',
+        email: email,
+        password: password,
         permission: {
-            chat: { C: true, R: true, U: true, D: true },
-            news: { C: true, R: true, U: true, D: true },
             settings: { C: true, R: true, U: true, D: true },
         },
     })
