@@ -94,23 +94,27 @@ app.post('/refresh-token', async (req, res) => {
 app.post('/registration', async (req, res) => {
 
     const { username } = req.body;
-    console.log(username);
+    // console.log(username);
     const user = await db.getUserByName(username)
 
     if (user) {
-        return res.status(409).json({ message: 'Пользователь с таким ником уже существует!'})
+        let message = 'Пользователь уже существует!';
+        return res.render('auth-register', {message, web_title:'пользователь уже существует'})
+        // return res.status(409).json({ message: 'Пользователь с таким ником уже существует!'})
     }
 
     try {
-        console.log(req.body)
+        // console.log(req.body)
         const newUser = await db.createUser(req.body)
-
+// выводим json с данными созданного в базе пользователя
         res.status(201).json({
             ...helper.serializeUser(newUser),
         })
     } catch (e) {
         console.log(e)
-        res.status(500).json({ message: e.message })
+        let message = e.message;// return?????
+        res.render('auth-register', message)
+        // res.status(500).json({ message: e.message })
     }
 })
 
