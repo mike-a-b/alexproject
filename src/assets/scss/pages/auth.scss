@@ -21,6 +21,16 @@ body {
             line-height: 2.5rem;
             color: #a8aebb;
         }
+        .auth-subtitle-error {
+            font-size: 1.7rem;
+            line-height: 2.5rem;
+            color: #dc3545;
+        }
+        auth-subtitle-ok {
+            font-size: 1.7rem;
+            line-height: 2.5rem;
+            color: green;
+        }
         .auth-logo {
             margin-bottom: 7rem;
             img {

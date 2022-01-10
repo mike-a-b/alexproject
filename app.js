@@ -10,9 +10,30 @@ const helper = require('./helper/serialize')
 const passport = require('passport')
 const tokens = require('./auth/tokens')
 const Joi = require('joi')
+const nodemailer = require('nodemailer')
+const session = require('express-session')
+const flash = require('connect-flash')
+const cookieParser = require('cookie-parser')
+let globValidateMsg = "";
+let user;
 
 app.set("views", path.join(__dirname, "src"))
 app.set("view engine", "html")
+app.use(cookieParser('keyboard cat'))
+app.use(
+    session({
+        secret: 'keyboard cat',
+        key: 'sessionkey',
+        cookie: {
+            path: '/',
+            httpOnly: true,
+            maxAge: 10 * 60 * 1000
+        },
+        saveUninitialized: true,
+        resave: false
+    })
+)
+app.use(flash())
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 
@@ -51,32 +72,71 @@ const auth = (req, res, next) => {
     })(req, res, next)
 }
 /****************        ROUTES START          ********************* */
+app.get('/main', auth, function (req,res, next) {
+    return res.render('i', {title: 'Главная - '})
+})
+
 app.get('/login', function (req,res, next) {
-    return res.render('auth-login');
+    if(req.flash('msglogin')[0])
+    {
+        user = {
+            username: req.flash('login')[0],
+            password: req.flash('password')[0],
+        }
+
+        return res.render('auth-login', {title:'Вход на сайт',
+            msglogin:req.flash('msglogin')[0], user, globValidateMsg});
+    }
+    else {
+        return res.render('auth-login', {title:'Вход на сайт',
+            globValidateMsg});
+    }
+
 })
 
 app.post('/login', async (req, res, next) => {
     passport.authenticate(
         'local',
         { session: false },
-        async (err, user, info) => {
+        async (err, usr, info) => {
             if (err) {
                 return next(err)
             }
 
-            if (!user) {
-                return res.status(400).json({ message: 'Не верный логин/пароль'})
+            if (!usr) {
+                globValidateMsg = 'Не верный логин/пароль';
+                user = {
+                    username: "",
+                    password: "",
+                }
+                // return res.status(400).json({ message: 'Не верный логин/пароль'})
+                return res.redirect('/login');
             }
 
             if (user) {
                 console.log(user)
-                const token = await tokens.createTokens(user)
+                const token = await tokens.createTokens(usr)
                 console.log(token)
-                // res.render('i');
-                res.json({
-                    ...helper.serializeUser(user),
-                    ...token,
-                })
+                if(req.body.savelogin)
+                {
+                    user = {
+                        username: req.body.username,
+                        password: req.body.password,
+                        savelogin: true,
+                    }
+                } else{
+                    user = {
+                        username: req.body.username,
+                        password: req.body.password,
+                        savelogin: false,
+                    }
+                }
+                
+                res.redirect('/main');
+                // res.json({
+                //     ...helper.serializeUser(user),
+                //     ...token,
+                // })
             }
         },
     )(req, res, next)
@@ -90,43 +150,39 @@ app.post('/refresh-token', async (req, res) => {
 })
 
 app.get('/registration', function (req, res, next) {
+    console.log(globValidateMsg);
+    res.render('auth-register', {title:'попробуйте еще раз!',
+            globValidateMsg, user, message:req.flash('msgregistration')[0]}
+        );
 
-    return res.render('auth-register');
 })
 
-
-
 app.post('/registration', async (req, res) => {
-    try {
-        let value = validateUser(req.body);
-        console.log(value);
-        const newUser = await db.createUser(value);
-        // res.redirect('/login'); mess что пользователь создан
-        // выводим json с данными созданного в базе пользователя
-        res.status(201).json({
-            ...helper.serializeUser(newUser),
-        })
-    }
-    catch (e)
-    {
-        console.log(e);
-
-        let message = e.message;
-        return res.render('auth-register', message);
+    let { username, email, password, password2 } = req.body;
+    
+    globValidateMsg = "";
+    user = {
+        username: username,
+        password: password,
+        password2: password2,
+        email: email,
     }
     
     try {
-        // console.log(req.body)
-        // const newUser = await db.createUser(req.body);
-        // res.redirect('/login');
-// выводим json с данными созданного в базе пользователя
-//         res.status(201).json({
-//             ...helper.serializeUser(newUser),
-//         })
-    } catch (e) {
-        console.log(e)
-        let message = e.message;
-        return res.render('auth-register', message)
+        let resultValidateUser = await validateUser(req.body);
+        const newUser = await db.createUser(req.body);
+
+        req.flash('msglogin', 'Пользователь успешно создан!')
+        req.flash('login', user.username);
+        req.flash('password', user.password);
+        res.redirect('/login');
+    }
+    catch (e)
+    {
+        // console.log('самая последняя ошибка в теле app.get catch(E) => ' + e.message);
+        // req.flash('msgregistration', e.message);
+        if(globValidateMsg === "") globValidateMsg = e.message;
+        res.redirect('/registration')
     }
 })
 
@@ -141,7 +197,9 @@ app.get('/testAuth', auth, async (req, res) => {
 app.get('/', function (req, res, next) {
     res.redirect('/registration');
 })
+
 /************* VALIDATION INPUT DATA ************************/
+
 const JoiSchema = Joi.object({
     username: Joi.string()
         .alphanum()
@@ -152,27 +210,46 @@ const JoiSchema = Joi.object({
     password: Joi.string()
         .pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).max(50).required(),
 
-    repeat_password: Joi.ref('password'),
+    password2: Joi.string()
+        .pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).max(50).required(),
 
     email: Joi.string()
-        .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net', 'ru', 'рф'] } })
+        .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net', 'ru'] } })
 })
-    .with('password', 'repeat_password');
 
-let validateUser = async function({ username, email, password, password2 }) {
+let validateUser = async ({ username, email, password, password2 }) => new Promise(async (resolve, reject) => {
+
+        const { error } = JoiSchema.validate({username : username, email: email, password: password, password2: password2})
+        if(error) {
+            console.log(error)
+            globValidateMsg = 'Введены некорректные данные '+ error.message;
+            reject('Введены некорректные данные '+ error.message );
+        }
+        
     try {
-        const { err, value} = Joi.validate({username, email, password, password2}, JoiSchema);
-        if(err) return reject(err);
-        if(password !== password2) return reject('Пароли не совпадают');
+        if(password !== password2) throw new Error('Пароли не совпадают');
         let emailInBase = await db.getUserByEmail(email);
-        if(emailInBase) return reject('Такой email уже существует');
+        if(emailInBase) throw new Error('Такой email уже существует');
         let user = await db.getUserByName(username);
-        if (user) return reject('Пользователь уже существует!');
-        resolve(value);
+        if (user) throw new Error('Пользователь уже существует!');
+        resolve("Пользователь успешно создан");
     }
-    catch (e){
-        reject(e);
+    catch (err){
+        globValidateMsg = "Пользователь или пароль уже существуют";
+        reject(globValidateMsg);
     }
-}
 
+}).then(function(result) {
+    globValidateMsg = result;
+}).catch(function (err){
+    if(globValidateMsg == "") globValidateMsg = err.message;
+})
+
+app.get('/forgotpassword', function (req, res, next) {
+    console.log(globValidateMsg);
+    res.render('auth-forgot-password', {title:'попробуйте еще раз!',
+        globValidateMsg, user, message:req.flash('msgregistration')[0]}
+    );
+
+})
 module.exports = app;
