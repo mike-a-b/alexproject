@@ -14,8 +14,9 @@ const nodemailer = require('nodemailer')
 const session = require('express-session')
 const flash = require('connect-flash')
 const cookieParser = require('cookie-parser')
+const config = require('./mailconfig.json')
 let globValidateMsg = "";
-let user;
+let userr;
 
 app.set("views", path.join(__dirname, "src"))
 app.set("view engine", "html")
@@ -62,9 +63,13 @@ app.use((err, _, res, __) => {
 const auth = (req, res, next) => {
     passport.authenticate('jwt', { session: false }, (err, user) => {
         if (!user || err) {
+            // globValidateMsg = "Unauthorized"
+            // return res.redirect('/login');
             return res.status(401).json({
                 code: 401,
                 message: 'Unauthorized',
+                user:user,
+                err:err,
             })
         }
         req.user = user
@@ -72,24 +77,34 @@ const auth = (req, res, next) => {
     })(req, res, next)
 }
 /****************        ROUTES START          ********************* */
-app.get('/main', auth, function (req,res, next) {
+app.get('/', function (req, res, next) {
+    return res.render('auth-login', {title:'Вход на сайт',
+        globValidateMsg});
+})
+app.get('/main', function (req,res, next) {
     return res.render('i', {title: 'Главная - '})
 })
 
 app.get('/login', function (req,res, next) {
     if(req.flash('msglogin')[0])
     {
-        user = {
+        userr = {
             username: req.flash('login')[0],
             password: req.flash('password')[0],
         }
 
         return res.render('auth-login', {title:'Вход на сайт',
-            msglogin:req.flash('msglogin')[0], user, globValidateMsg});
+            msglogin:req.flash('msglogin')[0], userr, globValidateMsg});
     }
     else {
-        return res.render('auth-login', {title:'Вход на сайт',
-            globValidateMsg});
+        if(globValidateMsg === "Unauthorized"){
+            globValidateMsg = "У вас нет прав для просмотра данной страницы"
+            return res.render('auth-login', {title:'Вход на сайт',
+                globValidateMsg});
+        }
+        else
+            return res.render('auth-login', {title:'Вход на сайт',
+                globValidateMsg});
     }
 
 })
@@ -98,14 +113,19 @@ app.post('/login', async (req, res, next) => {
     passport.authenticate(
         'local',
         { session: false },
-        async (err, usr, info) => {
+        async (err, user, info) => {
             if (err) {
-                return next(err)
+                globValidateMsg = err.message;
+                userr = {
+                    username: "",
+                    password: "",
+                }
+                return res.redirect('/login');
             }
 
-            if (!usr) {
+            if (!user) {
                 globValidateMsg = 'Не верный логин/пароль';
-                user = {
+                userr = {
                     username: "",
                     password: "",
                 }
@@ -115,28 +135,27 @@ app.post('/login', async (req, res, next) => {
 
             if (user) {
                 console.log(user)
-                const token = await tokens.createTokens(usr)
+                const token = await tokens.createTokens(user)
                 console.log(token)
                 if(req.body.savelogin)
                 {
-                    user = {
+                    // добавляем пометку что необходимо подгружать данные в текстбоксы перед
+                    // рендерингом странички логин
+                    userr = {
                         username: req.body.username,
                         password: req.body.password,
                         savelogin: true,
                     }
                 } else{
-                    user = {
+                    userr = {
                         username: req.body.username,
                         password: req.body.password,
                         savelogin: false,
                     }
                 }
-                
+
                 res.redirect('/main');
-                // res.json({
-                //     ...helper.serializeUser(user),
-                //     ...token,
-                // })
+
             }
         },
     )(req, res, next)
@@ -148,18 +167,18 @@ app.post('/refresh-token', async (req, res) => {
     const data = await tokens.refreshTokens(refreshToken)
     res.json({ ...data })
 })
-
+/************************************* registration ******************************************/
 app.get('/registration', function (req, res, next) {
     console.log(globValidateMsg);
     res.render('auth-register', {title:'попробуйте еще раз!',
-            globValidateMsg, user, message:req.flash('msgregistration')[0]}
-        );
+        globValidateMsg, user, message:req.flash('msgregistration')[0]}
+    );
 
 })
 
 app.post('/registration', async (req, res) => {
     let { username, email, password, password2 } = req.body;
-    
+
     globValidateMsg = "";
     user = {
         username: username,
@@ -167,7 +186,7 @@ app.post('/registration', async (req, res) => {
         password2: password2,
         email: email,
     }
-    
+
     try {
         let resultValidateUser = await validateUser(req.body);
         const newUser = await db.createUser(req.body);
@@ -179,8 +198,6 @@ app.post('/registration', async (req, res) => {
     }
     catch (e)
     {
-        // console.log('самая последняя ошибка в теле app.get catch(E) => ' + e.message);
-        // req.flash('msgregistration', e.message);
         if(globValidateMsg === "") globValidateMsg = e.message;
         res.redirect('/registration')
     }
@@ -194,9 +211,7 @@ app.get('/testAuth', auth, async (req, res) => {
     })
 })
 
-app.get('/', function (req, res, next) {
-    res.redirect('/registration');
-})
+
 
 /************* VALIDATION INPUT DATA ************************/
 
@@ -219,13 +234,13 @@ const JoiSchema = Joi.object({
 
 let validateUser = async ({ username, email, password, password2 }) => new Promise(async (resolve, reject) => {
 
-        const { error } = JoiSchema.validate({username : username, email: email, password: password, password2: password2})
-        if(error) {
-            console.log(error)
-            globValidateMsg = 'Введены некорректные данные '+ error.message;
-            reject('Введены некорректные данные '+ error.message );
-        }
-        
+    const { error } = JoiSchema.validate({username : username, email: email, password: password, password2: password2})
+    if(error) {
+        console.log(error)
+        globValidateMsg = 'Введены некорректные данные '+ error.message;
+        reject('Введены некорректные данные '+ error.message );
+    }
+
     try {
         if(password !== password2) throw new Error('Пароли не совпадают');
         let emailInBase = await db.getUserByEmail(email);
@@ -244,12 +259,53 @@ let validateUser = async ({ username, email, password, password2 }) => new Promi
 }).catch(function (err){
     if(globValidateMsg == "") globValidateMsg = err.message;
 })
-
+/**************************** восстановление пароля ******************************************/
 app.get('/forgotpassword', function (req, res, next) {
-    console.log(globValidateMsg);
-    res.render('auth-forgot-password', {title:'попробуйте еще раз!',
-        globValidateMsg, user, message:req.flash('msgregistration')[0]}
-    );
+    let msg = req.flash('mail')[0];
+    console.log(msg);
+    res.render('auth-forgot-password', {title:'Восстановление пароля', msg});
+})
 
+app.post('/forgotpassword', async (req, res, next) => {
+    try {
+        let userInBase = await db.getUserByEmail(req.body.email);
+        if (!userInBase) {
+            req.flash('mail', "Нет пользователя с таким email");
+            res.redirect('/forgotpassword');
+        }
+
+        if (!req.body.email) {
+            // если что-либо не указано - сообщаем об этом
+            throw new Error('Заполните поле почта!')
+        }
+        const transporter = nodemailer.createTransport(config.mail.smtp);
+        const mailOptions = {
+            from: `"${req.body.name}" <${req.body.email}>`,
+            to: config.mail.smtp.auth.user,
+            subject: config.mail.subject,
+            text:
+                "ваш пароль: "+ 'user234' +
+                `\n Отправлено с: <${req.body.email}>`,
+        }
+        // отправляем почту
+        transporter.sendMail(mailOptions, function (error, info) {
+            // если есть ошибки при отправке - сообщаем об этом
+            if (error) {
+                console.log(`При отправке письма произошла ошибка!: ${error}`);
+                req.flash('mail', `При отправке письма произошла ошибка!: ${error}`)
+                res.redirect('/forgotpassword')
+            } else {
+                console.log('Письмо успешно отправлено!');
+                req.flash('mail', 'Письмо успешно отправлено!')
+                res.redirect('/forgotpassword');
+            }
+        })
+    }
+    catch (error) {
+        console.log(error.message);
+        req.flash('mail', error.message);
+        res.redirect('/forgotpassword');
+    }
+    res.redirect('/forgotpassword');
 })
 module.exports = app;

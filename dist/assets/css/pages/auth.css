@@ -27,6 +27,11 @@ body {
   line-height: 2.5rem;
   color: #dc3545;
 }
+#auth #auth-left auth-subtitle-ok {
+  font-size: 1.7rem;
+  line-height: 2.5rem;
+  color: green;
+}
 #auth #auth-left .auth-logo {
   margin-bottom: 7rem;
 }

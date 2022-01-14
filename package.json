@@ -4,6 +4,7 @@
   "description": "mike-a-b",
   "main": "index.js",
   "scripts": {
+    "start": "node bin/WWW.js",
     "development": "mix",
     "watch": "mix watch",
     "watch-poll": "mix watch -- --watch-options-poll=1000",

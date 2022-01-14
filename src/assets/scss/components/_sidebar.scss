@@ -15,7 +15,7 @@
 }
 .sidebar-wrapper {
     width: 300px;
-    height: 100vh;
+    height: 70vh;
     position: fixed;
     top: 0;
     z-index: 10;
@@ -49,6 +49,7 @@
             margin: 1.5rem 0 1rem;
             font-size: 1rem;
             list-style: none;
+            text-align: center;
             font-weight: 600;
             color: #25396f;
         }
@@ -58,7 +59,7 @@
             padding: .7rem 1rem;
             font-size: 1rem;
             display: flex;
-            align-items: center;
+            align-items: flex-end;
             border-radius: .5rem;
             transition: all .5s;
             text-decoration: none;
@@ -68,6 +69,7 @@
             }
             span {
                 margin-left: 1rem;
+
             }
             &:hover {
                 background-color: rgb(240, 241, 245);
